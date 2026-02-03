@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CatFeed Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <style>
+/* Основные стили */
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    margin: 0;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 400px;
+    margin: 0 auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.date-card {
+    background: #4CAF50;
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.date-card h2 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.stats {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.stat {
+    text-align: center;
+    padding: 10px;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #4CAF50;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #666;
+    margin-top: 5px;
+}
+
+.feed-btn {
+    width: 100%;
+    padding: 15px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: background 0.3s;
+}
+
+.feed-btn:hover {
+    background: #45a049;
+}
+
+.change-btn {
+    width: 100%;
+    padding: 10px;
+    background: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background 0.3s;
+}
+
+.change-btn:hover {
+    background: #e0e0e0;
+}
+
+.history {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.history h3 {
+    margin-top: 0;
+    color: #333;
+    text-align: center;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+li {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    color: #555;
+}
+
+li:last-child {
+    border-bottom: none;
+}
+
+li strong {
+    color: #333;
+}
+
+.note {
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    padding: 10px;
+    border-top: 1px solid #eee;
+}
+
+.note p {
+    margin: 0;
+}
+    </style>
+</head>
+<body>
+    <!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кормление кота</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🐱 Кормление кота</h1>
+        
+        <div class="date-card">
+            <h2>Сегодня: <span id="todayDate">01.01.2023</span></h2>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="todayTotal">0г</div>
+                <div class="stat-label">Всего за день</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="feedCount">0</div>
+                <div class="stat-label">Кормлений</div>
+            </div>
+        </div>
+        
+        <button class="feed-btn" id="feedBtn">
+            🍖 Я покормил кота!
+        </button>
+        
+        <button class="change-btn" id="changeFeederBtn">
+            👤 Сменить имя
+        </button>
+        
+        <div class="history">
+            <h3>Сегодня кормили:</h3>
+            <ul id="feedList">
+                <li>Сегодня еще не кормили</li>
+            </ul>
+        </div>
+        
+        <div class="note">
+            <p>💡 История автоматически очищается каждый день</p>
+        </div>
+    </div>
+</body>
+</html>
+    <script>
+  // Кто кормит? 
+let feederName = "Мама"; // Можно поменять
+
+// Получаем сегодняшнюю дату
+function getToday() {
+    const now = new Date();
+    return now.toLocaleDateString('ru-RU'); // "01.01.2023"
+}
+
+// Получаем историю за сегодня
+function getTodayHistory() {
+    const today = getToday();
+    const history = JSON.parse(localStorage.getItem('catFeedHistory')) || [];
+    return history.filter(item => item.date === today);
+}
+
+// Сохраняем запись
+function saveFeed(grams) {
+    const now = new Date();
+    const feed = {
+        time: now.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'}),
+        name: feederName,
+        grams: grams + 'г',
+        date: getToday(),
+        timestamp: now.getTime()
+    };
+    
+    // Получаем всю историю
+    let allHistory = JSON.parse(localStorage.getItem('catFeedHistory')) || [];
+    
+    // Очищаем старые записи (старше сегодня)
+    const today = getToday();
+    allHistory = allHistory.filter(item => item.date === today);
+    
+    // Добавляем новую запись
+    allHistory.push(feed);
+    
+    // Сохраняем обратно
+    localStorage.setItem('catFeedHistory', JSON.stringify(allHistory));
+    
+    return feed;
+}
+
+// Вычисляем сумму за сегодня
+function getTodayTotal() {
+    const todayHistory = getTodayHistory();
+    let total = 0;
+    
+    todayHistory.forEach(item => {
+        // Извлекаем число из строки "15г"
+        const grams = parseInt(item.grams) || 0;
+        total += grams;
+    });
+    
+    return total;
+}
+
+// Обновляем интерфейс
+function updateUI() {
+    const todayHistory = getTodayHistory();
+    const todayTotal = getTodayTotal();
+    const todayDate = getToday();
+    
+    // Обновляем дату
+    document.getElementById('todayDate').textContent = todayDate;
+    
+    // Обновляем сумму
+    document.getElementById('todayTotal').textContent = todayTotal + 'г';
+    
+    // Обновляем количество кормлений
+    document.getElementById('feedCount').textContent = todayHistory.length;
+    
+    // Обновляем список
+    const listElement = document.getElementById('feedList');
+    
+    if (todayHistory.length === 0) {
+        listElement.innerHTML = '<li>Сегодня еще не кормили</li>';
+    } else {
+        // Показываем в обратном порядке (последние сверху)
+        listElement.innerHTML = todayHistory
+            .slice()
+            .reverse()
+            .map(item => `
+                <li>
+                    <strong>${item.time}</strong> - ${item.name} - ${item.grams}
+                </li>
+            `)
+            .join('');
+    }
+}
+
+// Главная кнопка
+document.getElementById('feedBtn').addEventListener('click', function() {
+    const weight = prompt("Сколько грамм дали коту?", "15");
+    
+    if (weight && !isNaN(weight)) {
+        // Сохраняем
+        const feed = saveFeed(weight);
+        
+        // Показываем сообщение
+        alert(`✅ Добавлено: ${feed.time} - ${feed.grams}`);
+        
+        // Обновляем интерфейс
+        updateUI();
+    } else if (weight !== null) {
+        alert("Введите число!");
+    }
+});
+
+// Кнопка смены кормящего
+document.getElementById('changeFeederBtn').addEventListener('click', function() {
+    const newName = prompt("Кто вы?", feederName);
+    if (newName && newName.trim() !== '') {
+        feederName = newName.trim();
+        alert(`Теперь вы: ${feederName}`);
+    }
+});
+
+// При загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    updateUI();
+    
+    // Проверяем, новый ли день
+    const lastVisit = localStorage.getItem('lastVisitDate');
+    const today = getToday();
+    
+    if (lastVisit !== today) {
+        // Новый день - показываем сообщение
+        console.log(`Новый день! Сегодня: ${today}`);
+        localStorage.setItem('lastVisitDate', today);
+        
+        // Автоматически очищаем историю (остаются только сегодняшние записи)
+        const allHistory = JSON.parse(localStorage.getItem('catFeedHistory')) || [];
+        const todayHistory = allHistory.filter(item => item.date === today);
+        localStorage.setItem('catFeedHistory', JSON.stringify(todayHistory));
+    }
+});
+    </script>
+</body>
+</html>
